@@ -1,15 +1,24 @@
 package me.shigure.basebrower;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
 import android.webkit.WebBackForwardList;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ProgressBar;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -161,6 +170,75 @@ public class OpenWebView extends WebView implements View.OnKeyListener {
     public void clearCache(){
         clearCache(true);
         clearHistory();
+    }
+    private static boolean isAnimStart = false ;
+    private static int currentProgress = 0 ;
+
+    public void openLoadProgress(final ProgressBar mProgressBar){
+        setWebViewClient(new WebViewClient(){
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                mProgressBar.setVisibility(View.VISIBLE);
+                mProgressBar.setAlpha(1.0f);
+            }
+        });
+        setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onProgressChanged(WebView view, int newProgress) {
+                currentProgress = mProgressBar.getProgress();
+                if (newProgress >= 100 && !isAnimStart) {
+                    // 防止调用多次动画
+                    isAnimStart = true;
+                    mProgressBar.setProgress(newProgress);
+                    // 开启属性动画让进度条平滑消失
+                    startDismissAnimation(mProgressBar,mProgressBar.getProgress());
+                } else {
+                    // 开启属性动画让进度条平滑递增
+                    startProgressAnimation(mProgressBar , newProgress);
+                }
+            }
+        });
+    }
+    /**
+     * progressBar消失动画
+     */
+    private void startDismissAnimation(final ProgressBar mProgressBar , final int progress) {
+        ObjectAnimator anim = ObjectAnimator.ofFloat(mProgressBar, "alpha", 1.0f, 0.0f);
+        anim.setDuration(1500);  // 动画时长
+        anim.setInterpolator(new DecelerateInterpolator());     // 减速
+        // 关键, 添加动画进度监听器
+        anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                float fraction = valueAnimator.getAnimatedFraction();      // 0.0f ~ 1.0f
+                int offset = 100 - progress;
+                mProgressBar.setProgress((int) (progress + offset * fraction));
+            }
+        });
+
+        anim.addListener(new AnimatorListenerAdapter() {
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                // 动画结束
+                mProgressBar.setProgress(0);
+                mProgressBar.setVisibility(View.GONE);
+                isAnimStart = false;
+            }
+        });
+        anim.start();
+    }
+
+    /**
+     * progressBar递增动画
+     */
+    private void startProgressAnimation(ProgressBar mProgressBar , int newProgress) {
+        ObjectAnimator animator = ObjectAnimator.ofInt(mProgressBar, "progress", currentProgress, newProgress);
+        animator.setDuration(300);
+        animator.setInterpolator(new DecelerateInterpolator());
+        animator.start();
     }
 
 

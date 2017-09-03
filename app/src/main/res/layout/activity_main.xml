@@ -13,4 +13,13 @@
         android:fadingEdge="none"
         android:overScrollMode="never">
     </me.shigure.basebrower.OpenWebView>
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:max="100"
+        android:progress="30"
+        android:progressTint="@color/webLoading"
+        android:gravity="top"/>
 </android.support.design.widget.CoordinatorLayout>
