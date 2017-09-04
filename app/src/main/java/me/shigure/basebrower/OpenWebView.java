@@ -6,6 +6,9 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.os.Handler;
+import android.os.Message;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -19,6 +22,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,6 +38,7 @@ import static android.content.ContentValues.TAG;
 
 public class OpenWebView extends WebView implements View.OnKeyListener {
     private Context context ;
+    private String indexUrl = null ;
     public OpenWebView(Context context) {
         super(context);
         this.context = context;
@@ -112,15 +117,41 @@ public class OpenWebView extends WebView implements View.OnKeyListener {
 
     @Override
     public boolean onKey(View view, int i, KeyEvent keyEvent) {
+        String url = getCurrentUrl();
         if (keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
             if (i == KeyEvent.KEYCODE_BACK && canGoBack()) { // 表示按返回键
                 // 时的操作
                 goBack(); // 后退
                 // webview.goForward();//前进
-                return true; // 已处理
+            }else if(TextUtils.equals(url,indexUrl)){   //如果回退界面是当前主页 再按一次推出则退出程序
+                exit();
+                return true ;
             }
         }
-        return false;
+        return true ;
+    }
+    // 定义一个变量，来标识是否退出
+    private static boolean isExit = false;
+
+    Handler mHandler = new Handler() {
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            isExit = false;
+        }
+    };
+
+    private void exit() {
+        if (!isExit) {
+            isExit = true;
+            Toast.makeText(context, "再按一次退出程序",
+                    Toast.LENGTH_SHORT).show();
+            // 利用handler延迟发送更改状态信息
+            mHandler.sendEmptyMessageDelayed(0, 2000);
+        } else {
+            System.exit(0);
+        }
     }
 
     private class BaseWebViewClient extends WebViewClient{
@@ -154,6 +185,7 @@ public class OpenWebView extends WebView implements View.OnKeyListener {
     }
 
     public void load(String url){
+        indexUrl = url ;
         loadUrl(url);
     }
 
@@ -239,6 +271,10 @@ public class OpenWebView extends WebView implements View.OnKeyListener {
         animator.setDuration(300);
         animator.setInterpolator(new DecelerateInterpolator());
         animator.start();
+    }
+
+    public String getCurrentUrl(){
+        return getUrl();
     }
 
 
