@@ -13,9 +13,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
-import android.webkit.WebBackForwardList;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
@@ -24,11 +22,7 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.security.NoSuchAlgorithmException;
 
 import static android.content.ContentValues.TAG;
 
@@ -39,6 +33,7 @@ import static android.content.ContentValues.TAG;
 public class OpenWebView extends WebView implements View.OnKeyListener {
     private Context context ;
     private String indexUrl = null ;
+    private String personIndex = "http://47.89.20.85:8090/WaterCloud/person.html";
     public OpenWebView(Context context) {
         super(context);
         this.context = context;
@@ -119,13 +114,15 @@ public class OpenWebView extends WebView implements View.OnKeyListener {
     public boolean onKey(View view, int i, KeyEvent keyEvent) {
         String url = getCurrentUrl();
         if (keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
-            if (i == KeyEvent.KEYCODE_BACK && canGoBack()) { // 表示按返回键
+            if (TextUtils.equals(url,indexUrl) || TextUtils.equals(url,personIndex)) { // 表示按返回键
+                exit();
+                return true ;
+            }else if(i == KeyEvent.KEYCODE_BACK && canGoBack()){   //如果回退界面是当前主页 再按一次推出则退出程序
+
                 // 时的操作
                 goBack(); // 后退
                 // webview.goForward();//前进
-            }else if(TextUtils.equals(url,indexUrl)){   //如果回退界面是当前主页 再按一次推出则退出程序
-                exit();
-                return true ;
+
             }
         }
         return true ;
