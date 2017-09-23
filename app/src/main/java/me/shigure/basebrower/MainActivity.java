@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         webView = (OpenWebView) findViewById(R.id.web);
         progressBar = (ProgressBar) findViewById(R.id.progress);
         swipe = (SwipeRefreshLayout) findViewById(R.id.swipe);
-        webView.load("http://47.89.20.85:8090/WaterCloud/index.html");
+        webView.load("http://47.89.20.85:8090/WaterCloud/index.html?companyId=34010499");
         webView.openLoadProgress(progressBar);
         swipe.setProgressViewEndTarget (true,290);
         swipe.setOnRefreshListener(this);
